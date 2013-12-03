@@ -8,6 +8,15 @@
 /* =Header
 -------------------------------------------------------------- */
 
+#site-title {
+  font-family: "Arial", sans-serif;
+  text-shadow: none;
+}
+
+#site-title a:link,
+#site-title a:visited {
+  font-size: 1.5em;
+}
 
 /* =Media Queries
 -------------------------------------------------------------- */
