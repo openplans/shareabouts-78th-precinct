@@ -35,6 +35,11 @@ SHAREABOUTS = {
 
 STATIC_ROOT = '/home/dotcloud/current/static/'
 
+if 'GOOGLE_ANALYTICS_ID' in env:
+    GOOGLE_ANALYTICS_ID = env.get('GOOGLE_ANALYTICS_ID')
+if 'GOOGLE_ANALYTICS_DOMAIN' in env:
+    GOOGLE_ANALYTICS_DOMAIN = env.get('GOOGLE_ANALYTICS_DOMAIN')
+
 # Debug is False by default, true if set in the environment.
 DEBUG = (env.get('DEBUG', 'False') in ['true', 'True'])
 TEMPLATE_DEBUG = DEBUG
