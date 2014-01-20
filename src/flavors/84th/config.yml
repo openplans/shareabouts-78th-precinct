@@ -18,9 +18,9 @@ map:
   geolocation_onload: false
   options:
     center:
-      lat: 40.67353468936789
-      lng: -73.97772789001463
-    zoom: 17
+      lat: 40.696885710684214
+      lng: -73.99082398507744
+    zoom: 15
     minZoom: 15
     maxZoom: 19
   layers:
@@ -288,7 +288,3 @@ pages:
     slug: about
     name: overview
     start_page: true
-    
-  - title: _(Resources)
-    slug: resources
-    name: features
