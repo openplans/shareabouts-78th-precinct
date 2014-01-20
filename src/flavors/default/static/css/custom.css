@@ -18,6 +18,11 @@
   font-size: 1.5em;
 }
 
+/* better color for background when map tiles are loading */
+#map {
+  background: #E8E0D8;
+}
+
 /* =Media Queries
 -------------------------------------------------------------- */
 
