@@ -42,7 +42,7 @@ place_types:
           shadowSize: [31, 32]
           iconAnchor: [16, 25]
         focus_icon:
-          iconUrl: /static/css/images/cone.png
+          iconUrl: /static/css/images/cone-blue.png
           shadowUrl: /static/css/images/shadow-square-white.png
           iconSize: [31, 32]
           shadowSize: [31, 32]
