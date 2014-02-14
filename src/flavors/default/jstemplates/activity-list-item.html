@@ -10,7 +10,7 @@
       
     {{#if is_place }}
       <span class="place-type"><strong>{{ place.place_type_label }}</strong></span>
-      {{#if place.name }} at <span class="place-name">{{ place.name }}</span>{{/if }} {{ action }} by
+      {{#if place.name }} at <span class="place-name">{{ place.name }}</span>{{/if }} {{ action }} {{ fromnow created_datetime }} by
       {{#if target.submitter}}
         {{ target.submitter.name }}
       {{^}}
@@ -26,9 +26,10 @@
       {{ target.submitter_name }}
     {{/if}}
     
-      {{ action }} on {{ place.place_type_label }} 
+      {{ action }} <strong>{{ place.place_type_label }}</strong>  {{ fromnow created_datetime }}
      {{#if place.name }} at <span class="place-name">{{ place.name }}</span> {{/if}}
     
     {{/if }}
+    
   </a>
 </li>{{/_}}
