@@ -557,18 +557,21 @@ a.logout-btn {
 }
 
 /* Drag Marker Instructions (for adding a new place) */
-.drag-marker-instructions {
+.drag-marker-instructions,
+.drag-marker-warning {
   background-color: LightYellow;
   background-color: rgba(240,240,0,0.2);
   color: #444;
-  font-size: 0.875em;
   font-weight: bold;
   text-shadow: -1px 1px 0 rgba(255,255,255,0.5);
   text-align: center;
-  line-height: 2;
   margin-bottom: 1em;
-  padding: 0.325em;
+  padding: 0.75em 1em 0.875em;
   border-radius: 0.325em;
+}
+.drag-marker-warning {
+  background-color: LightPink;
+  background-color: rgba(242, 206, 206, 0.8);
 }
 
 /* Ajax Error Message */
@@ -774,15 +777,10 @@ a.close-btn span {
 .response-date a:hover {
   color: #00aaff;
 }
-.submission-count {
-  font-size: 0.875em;
-  font-weight: bold;
+.survey-count {
+  font-size: 0.75em;
   text-transform: uppercase;
-  float: left;
-}
-.submission-count .submission-type {
-  font-size: 0.875em;
-  font-weight: normal;
+  display: block;
 }
 
 /* Surveys */
@@ -959,7 +957,7 @@ ul.recent-points {
 /* =List View
 -------------------------------------------------------------- */
 
-.list-toggle-nav { 
+.list-toggle-nav {
   display: none;
 }
 
@@ -1015,8 +1013,8 @@ ul.recent-points {
   padding: 1.25em 0 0;
 }
 .place-list > li {
-  margin: 0 0 1.25em 0;
-  padding: 0.75em 0 0 0;
+  margin: 0;
+  padding: 0.75em 0 1.25em 0;
   border-top: 1px solid #eeeeee;
 }
 .place-list .place-header {
@@ -1025,8 +1023,7 @@ ul.recent-points {
 .place-list .place-header:before, .place-list .place-header:after { display: none; }
 .place-list .place-header:after { clear: none; }
 .place-list .place-header h1 {
-  font-size: 1.625em;
-  margin-bottom: 0.75em;
+  font-size: 1.5em;
 }
 .place-list .place-submission-details {
   float: left;
@@ -1043,9 +1040,6 @@ ul.recent-points {
   float: left;
   margin-left: -3em;
 }
-.place-list .submission-count {
-  font-size: 1.25em;
-}
 .place-list .place-items {
   margin-right: 5em;
   margin-left: 16em;
@@ -1056,15 +1050,20 @@ ul.recent-points {
   margin: 0 1em 0.75em 0;
 }
 
-.place-list .place-label, 
+.place-list .place-label,
 .place-list .place-value {
 }
-.place-list .place-label:empty, 
+.place-list .place-label:empty,
 .place-list .place-value:empty {
   display: none;
 }
 .place-item-attachment .place-value:empty {
   display: block;
+}
+
+.view-on-map-btn {
+  margin: 1em 0;
+  float: left;
 }
 
 
@@ -1202,11 +1201,43 @@ a.close-unsupported-overlay {
     position: relative;
     top: 50%;
   }
-  .access li,
-  .access li li {
+  .access li {
   	float: left;
   	padding: 0;
   	margin: 0 0 0 0.5em;
+  }
+  .access li ul {
+    display: none;
+  }
+  .access li:hover > ul {
+    display: block;
+    background: #ccc;
+    box-shadow: -0.25em 0.25em 0 rgba(0,0,0,0.1);
+    border: 3px solid rgba(0,0,0,0.05);
+    border-radius: 0;
+    margin: -3px 0 0 0;
+    padding: 3px 0 0 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    z-index: 2;
+    overflow: hidden;
+  }
+  .access li ul li:hover ul {
+    display: block;
+    top: 0;
+    left: 100%;
+  }
+  .access li li {
+  	float: none;
+  	padding: 0;
+  	margin: 0;
+  }
+  .access li li .btn {
+    border: 0;
+    border-radius: 0;
+    margin-top: -3px;
+    box-shadow: none;
   }
   #sign-in-btn {
     font-size: 1em;
@@ -1371,7 +1402,7 @@ a.close-unsupported-overlay {
   }
 
   /* List View */
-  .list-toggle-nav { 
+  .list-toggle-nav {
     display: block;
     float: right;
     width: auto;

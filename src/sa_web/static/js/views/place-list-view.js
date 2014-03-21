@@ -54,20 +54,23 @@ var Shareabouts = Shareabouts || {};
       searchField: '#list-search',
       searchForm: '.list-search-form',
       allSorts: '.list-sort-menu a',
-      dateSort: '.date-sort',
-      surveySort: '.survey-sort',
-      supportSort: '.support-sort'
+      date: '.date-sort',
+      surveyCount: '.survey-sort',
+      supportCount: '.support-sort'
     },
     events: {
       'input @ui.searchField': 'handleSearchInput',
       'submit @ui.searchForm': 'handleSearchSubmit',
-      'click @ui.dateSort': 'handleDateSort',
-      'click @ui.surveySort': 'handleSurveyCountSort',
-      'click @ui.supportSort': 'handleSupportCountSort'
+      'click @ui.date': 'handleDateSort',
+      'click @ui.surveyCount': 'handleSurveyCountSort',
+      'click @ui.supportCount': 'handleSupportCountSort'
     },
     initialize: function(options) {
       // Init the views cache
       this.views = {};
+
+      // Set the default sort
+      this.sortBy = 'date';
     },
     onAfterItemAdded: function(view) {
       // Cache the views as they are added
@@ -96,70 +99,78 @@ var Shareabouts = Shareabouts || {};
     handleDateSort: function(evt) {
       evt.preventDefault();
 
-      this.dateSort();
+      this.sortBy = 'date';
+      this.sort();
 
-      this.ui.allSorts.removeClass('is-selected');
-      this.ui.dateSort.addClass('is-selected');
+      this.updateSortLinks();
     },
     handleSurveyCountSort: function(evt) {
       evt.preventDefault();
 
-      this.surveyCountSort();
+      this.sortBy = 'surveyCount';
+      this.sort();
 
-      this.ui.allSorts.removeClass('is-selected');
-      this.ui.surveySort.addClass('is-selected');
+      this.updateSortLinks();
     },
     handleSupportCountSort: function(evt) {
       evt.preventDefault();
 
-      this.supportCountSort();
+      this.sortBy = 'supportCount';
+      this.sort();
 
-      this.ui.allSorts.removeClass('is-selected');
-      this.ui.supportSort.addClass('is-selected');
+      this.updateSortLinks();
     },
+    updateSortLinks: function() {
+      this.ui.allSorts.removeClass('is-selected');
+      this.ui[this.sortBy].addClass('is-selected');
+    },
+    dateSort: function(a, b) {
+      if (a.get('created_datetime') > b.get('created_datetime')) {
+        return -1;
+      } else {
+        return 1;
+      }
+    },
+    surveyCountSort: function(a, b) {
+      var submissionA = a.submissionSets[S.Config.survey.submission_type],
+          submissionB = b.submissionSets[S.Config.survey.submission_type],
+          aCount = submissionA ? submissionA.size() : 0,
+          bCount = submissionB ? submissionB.size() : 0;
 
-    dateSort: function() {
-      this.sort(function(a, b) {
+      if (aCount === bCount) {
         if (a.get('created_datetime') > b.get('created_datetime')) {
           return -1;
         } else {
           return 1;
         }
-      });
-
-      this.ui.allSorts.removeClass('is-selected');
-      this.ui.dateSort.addClass('is-selected');
+      } else if (aCount > bCount) {
+        return -1;
+      } else {
+        return 1;
+      }
     },
-    surveyCountSort: function() {
-      this.sort(function(a, b) {
-        var submissionA = a.submissionSets[S.Config.survey.submission_type],
-            submissionB = b.submissionSets[S.Config.survey.submission_type],
-            aCount = submissionA ? submissionA.size() : 0,
-            bCount = submissionB ? submissionB.size() : 0;
+    supportCountSort: function(a, b) {
+      var submissionA = a.submissionSets[S.Config.support.submission_type],
+          submissionB = b.submissionSets[S.Config.support.submission_type],
+          aCount = submissionA ? submissionA.size() : 0,
+          bCount = submissionB ? submissionB.size() : 0;
 
-        if (aCount > bCount) {
+      if (aCount === bCount) {
+        if (a.get('created_datetime') > b.get('created_datetime')) {
           return -1;
         } else {
           return 1;
         }
-      });
+      } else if (aCount > bCount) {
+        return -1;
+      } else {
+        return 1;
+      }
     },
-    supportCountSort: function() {
-      this.sort(function(a, b) {
-        var submissionA = a.submissionSets[S.Config.support.submission_type],
-            submissionB = b.submissionSets[S.Config.support.submission_type],
-            aCount = submissionA ? submissionA.size() : 0,
-            bCount = submissionB ? submissionB.size() : 0;
+    sort: function() {
+      var sortFunction = this.sortBy + 'Sort';
 
-        if (aCount > bCount) {
-          return -1;
-        } else {
-          return 1;
-        }
-      });
-    },
-    sort: function(comparator) {
-      this.collection.comparator = comparator;
+      this.collection.comparator = this[sortFunction];
       this.collection.sort();
       this.renderList();
       this.filter(this.ui.searchField.val());
@@ -170,7 +181,8 @@ var Shareabouts = Shareabouts || {};
 
       term = term.toUpperCase();
       this.collection.each(function(model) {
-        var show = false;
+        var show = false,
+            submitter, locationType;
         for (i=0; i<len; i++) {
           key = S.Config.place.items[i].name;
           val = model.get(key);
@@ -180,12 +192,34 @@ var Shareabouts = Shareabouts || {};
           }
         }
 
+        // Submitter is only present when a user submits a place when logged in
+        // with FB or Twitter. We handle it specially because it is an object,
+        // not a string.
+        submitter = model.get('submitter');
+        if (!show && submitter) {
+          if (submitter.name && submitter.name.toUpperCase().indexOf(term) !== -1 ||
+              submitter.username && submitter.username.toUpperCase().indexOf(term) !== -1) {
+            show = true;
+          }
+        }
+
+        // If the location_type has a label, we should filter by it also.
+        locationType = S.Config.flavor.place_types[model.get('location_type')];
+        if (!show && locationType && locationType.label) {
+          if (locationType.label.toUpperCase().indexOf(term) !== -1) {
+            show = true;
+          }
+        }
+
         if (show) {
           model.trigger('show');
         } else {
           model.trigger('hide');
         }
       });
+    },
+    isVisible: function() {
+      return this.$el.is(':visible');
     }
   });
 

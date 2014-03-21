@@ -204,6 +204,9 @@ place:
   action_text: _(reported)
   title: _(Describe the issue)
   action_text: _(reported)
+  # Labels for the buttons that toggle the map and list views
+  show_list_button_label: _(List All Places)
+  show_map_button_label: _(Show the Map)
   anonymous_name: _(Someone)
   submit_button_label: _(Share this report)
   items:
@@ -281,6 +284,8 @@ support:
   submission_type: support
   submit_btn_text: _(I agree!)
   action_text: agreed
+  response_name: _(agree)
+  response_plural_name: _(agrees)
   anonymous_name: _(Someone)
 
 pages:

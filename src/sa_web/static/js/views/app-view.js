@@ -24,7 +24,19 @@ var Shareabouts = Shareabouts || {};
       'click .close-btn': 'onClickClosePanelBtn'
     },
     initialize: function(){
-      var self = this;
+      var self = this,
+          placeParams = {
+            // NOTE: this is to simply support the list view. It won't
+            // scale well, so let's think about a better solution.
+            include_submissions: true
+          };
+
+      // Use the page size as dictated by the server by default, unless
+      // directed to do otherwise in the configuration.
+      if (S.Config.flavor.app.places_page_size) {
+        placeParams.page_size = S.Config.flavor.app.places_page_size;
+      }
+
       // Boodstrapped data from the page
       this.activities = this.options.activities;
       this.places = this.collection;
@@ -42,9 +54,42 @@ var Shareabouts = Shareabouts || {};
         self.toggleListView();
       });
 
+      // Globally capture clicks. If they are internal and not in the pass
+      // through list, route them through Backbone's navigate method.
+      $(document).on('click', 'a[href^="/"]', function(evt) {
+        var $link = $(evt.currentTarget),
+            href = $link.attr('href'),
+            url;
+
+        // Allow shift+click for new tabs, etc.
+        if ((href === '/' ||
+             href.indexOf('/place') === 0 ||
+             href.indexOf('/page') === 0) &&
+             !evt.altKey && !evt.ctrlKey && !evt.metaKey && !evt.shiftKey) {
+          evt.preventDefault();
+
+          // Remove leading slashes and hash bangs (backward compatablility)
+          url = href.replace(/^\//, '').replace('#!/', '');
+
+          // # Instruct Backbone to trigger routing events
+          self.options.router.navigate(url, {
+            trigger: true
+          });
+
+          return false;
+        }
+      });
+
       // Handle collection events
       this.collection.on('add', this.onAddPlace, this);
       this.collection.on('remove', this.onRemovePlace, this);
+
+      // On any route (/place or /page), hide the list view
+      this.options.router.bind('route', function(route) {
+        if (route !== 'showList' && this.listView && this.listView.isVisible()) {
+          this.hideListView();
+        }
+      }, this);
 
       // Only append the tools to add places (if supported)
       $('#map-container').append(Handlebars.templates['add-places'](this.options.placeConfig));
@@ -104,6 +149,9 @@ var Shareabouts = Shareabouts || {};
       // with utmost awesomeness.
       this.mapView.map.on('movestart', this.onMapMoveStart, this);
       this.mapView.map.on('moveend', this.onMapMoveEnd, this);
+      // For knowing if the user has moved the map after opening the form.
+      this.mapView.map.on('dragend', this.onMapDragEnd, this);
+
 
       // This is the "center" when the popup is open
       this.offsetRatio = {x: 0.2, y: 0.0};
@@ -115,16 +163,84 @@ var Shareabouts = Shareabouts || {};
       // Show tools for adding data
       this.showAddButton();
       this.showCenterPoint();
+
+      // Load places from the API
+      this.loadPlaces(placeParams);
+
+      // Fetch the first page of activity
+      this.activities.fetch({reset: true});
     },
+
+    loadPlaces: function(placeParams) {
+      var self = this,
+          $progressContainer = $('#map-progress'),
+          $currentProgress = $('#map-progress .current-progress'),
+          pageSize,
+          totalPages,
+          pagesComplete = 0;
+
+      this.collection.fetchAllPages({
+        remove: false,
+        // Check for a valid location type before adding it to the collection
+        validate: true,
+        data: placeParams,
+
+        success: function() {
+          // Sort the list view after all of the pages have been fetched
+          self.listView.sort();
+          self.listView.updateSortLinks();
+        },
+
+        // Only do this for the first page...
+        pageSuccess: _.once(function(collection, data) {
+          pageSize = data.features.length;
+          totalPages = Math.ceil(data.metadata.length / pageSize);
+
+          if (data.metadata.next) {
+            $progressContainer.show();
+          }
+        }),
+
+        // Do this for every page...
+        pageComplete: function() {
+          var percent;
+
+          pagesComplete++;
+          percent = (pagesComplete/totalPages*100);
+          $currentProgress.width(percent + '%');
+
+          if (pagesComplete === totalPages) {
+            _.delay(function() {
+              $progressContainer.hide();
+            }, 2000);
+          }
+        }
+      });
+    },
+
     // Get the center of the map
     getCenter: function() {
       return this.mapView.map.getCenter();
+    },
+    setPlaceFormViewLatLng: function(centerLatLng) {
+      if (this.placeFormView) {
+        this.placeFormView.setLatLng(centerLatLng);
+      }
     },
     onMapMoveStart: function(evt) {
       this.$centerpoint.addClass('dragging');
     },
     onMapMoveEnd: function(evt) {
       this.$centerpoint.removeClass('dragging');
+
+      // Never set the placeFormView's latLng until the user does it with a
+      // drag event (below)
+      if (this.placeFormView && this.placeFormView.center) {
+        this.setPlaceFormViewLatLng(this.getCenter());
+      }
+    },
+    onMapDragEnd: function(evt) {
+      this.setPlaceFormViewLatLng(this.getCenter());
     },
     onClickAddPlaceBtn: function(evt) {
       evt.preventDefault();
@@ -345,16 +461,27 @@ var Shareabouts = Shareabouts || {};
     render: function() {
       this.mapView.render();
     },
+    showListView: function() {
+      // Re-sort if new places have come in
+      this.listView.sort();
+      // Show
+      this.listView.$el.addClass('is-exposed');
+      $('.show-the-list').addClass('is-visuallyhidden');
+      $('.show-the-map').removeClass('is-visuallyhidden');
+    },
+    hideListView: function() {
+      this.listView.$el.removeClass('is-exposed');
+      $('.show-the-list').removeClass('is-visuallyhidden');
+      $('.show-the-map').addClass('is-visuallyhidden');
+    },
     toggleListView: function() {
-      if (this.listView.$el.is(':visible')) {
-        this.listView.$el.removeClass('is-exposed');
-        $('.show-the-list').removeClass('is-visuallyhidden');
-        $('.show-the-map').addClass('is-visuallyhidden');
+      if (this.listView.isVisible()) {
+        this.viewMap();
+        this.hideListView();
+        this.options.router.navigate('');
       } else {
-        this.listView.$el.addClass('is-exposed');
-        this.listView.dateSort();
-        $('.show-the-list').addClass('is-visuallyhidden');
-        $('.show-the-map').removeClass('is-visuallyhidden');
+        this.showListView();
+        this.options.router.navigate('list');
       }
     }
   });

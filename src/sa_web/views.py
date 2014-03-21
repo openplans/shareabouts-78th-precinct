@@ -11,7 +11,8 @@ from .config import get_shareabouts_config
 from django.shortcuts import render
 from django.conf import settings
 from django.core.cache import cache
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template import TemplateDoesNotExist, RequestContext
 from django.template.loader import render_to_string
 from django.utils.timezone import now
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -58,21 +59,13 @@ class ShareaboutsApi (object):
 
 
 @ensure_csrf_cookie
-def index(request, default_place_type):
-
+def index(request, place_id=None):
     # Load app config settings
     config = get_shareabouts_config(settings.SHAREABOUTS.get('CONFIG'))
     config.update(settings.SHAREABOUTS.get('CONTEXT', {}))
 
     # Get initial data for bootstrapping into the page.
     api = ShareaboutsApi(dataset_root=settings.SHAREABOUTS.get('DATASET_ROOT'))
-
-    # Handle place types in case insensitive way (park works just like Park)
-    lower_place_types = [k.lower() for k in config['place_types'].keys()]
-    if default_place_type.lower() in lower_place_types:
-        validated_default_place_type = default_place_type
-    else:
-        validated_default_place_type = ''
 
     # Get the content of the static pages linked in the menu.
     pages_config = config.get('pages', [])
@@ -97,17 +90,25 @@ def index(request, default_place_type):
     user_agent = httpagentparser.detect(user_agent_string)
     user_agent_json = json.dumps(user_agent)
 
+    place = None
+    if place_id:
+        place = api.get('places/' + place_id)
+        if place:
+            place = json.loads(place)
+
     context = {'config': config,
 
                'user_token_json': user_token_json,
                'pages_config': pages_config,
                'pages_config_json': pages_config_json,
                'user_agent_json': user_agent_json,
-               'default_place_type': validated_default_place_type,
+               # Useful for customized meta tags
+               'place': place,
 
                'API_ROOT': api.root,
                'DATASET_ROOT': api.dataset_root,
                }
+
     return render(request, 'index.html', context)
 
 
@@ -122,7 +123,7 @@ def place_was_created(request, path, response):
 def send_place_created_notifications(request, response):
     config = get_shareabouts_config(settings.SHAREABOUTS.get('CONFIG'))
     config.update(settings.SHAREABOUTS.get('CONTEXT', {}))
-    
+
     # Before we start, check whether we're configured to send at all on new
     # place.
     should_send = config.get('notifications', {}).get('on_new_place', False)
@@ -135,9 +136,16 @@ def send_place_created_notifications(request, response):
     errors = []
 
     try:
+        # The reuest has any potentially private data fields.
+        requested_place = json.loads(request.body)
+    except ValueError:
+        errors.append('Received invalid place JSON from request: %r' % (request.body,))
+
+    try:
+        # The response has things like ID and cretated datetime
         place = json.loads(response.content)
     except ValueError:
-        errors.append('Received invalid place JSON: %r' % (response.content,))
+        errors.append('Received invalid place JSON from response: %r' % (response.content,))
 
     try:
         from_email = settings.EMAIL_ADDRESS
@@ -146,7 +154,7 @@ def send_place_created_notifications(request, response):
 
     try:
         email_field = config.get('notifications', {}).get('submitter_email_field', 'submitter_email')
-        recipient_email = place['properties'][email_field]
+        recipient_email = requested_place['properties'][email_field]
     except KeyError:
         errors.append('No "%s" field found on the place. Be sure to configure the "notifications.submitter_email_field" property if necessary.' % (email_field,))
 
@@ -161,10 +169,22 @@ def send_place_created_notifications(request, response):
     if not recipient_email:
         return
 
+    # Set optional values
+    bcc_list = getattr(settings, 'EMAIL_NOTIFICATIONS_BCC', [])
+
     # If we didn't find any errors, then render the email and send.
-    context_data = {'place': place, 'config': config, 'request': request}
+    context_data = RequestContext(request, {
+        'place': place,
+        'email': recipient_email,
+        'config': config,
+    })
     subject = render_to_string('new_place_email_subject.txt', context_data)
     body = render_to_string('new_place_email_body.txt', context_data)
+
+    try:
+        html_body = render_to_string('new_place_email_body.html', context_data)
+    except TemplateDoesNotExist:
+        html_body = None
 
     # connection = smtp.EmailBackend(
     #     host=...,
@@ -172,13 +192,21 @@ def send_place_created_notifications(request, response):
     #     username=...,
     #     use_tls=...)
 
-    send_mail(
+    # NOTE: In Django 1.7+, send_mail can handle multi-part email with the
+    # html_message parameter, but pre 1.7 cannot and we must construct the
+    # multipart message manually.
+    msg = EmailMultiAlternatives(
         subject,
         body,
         from_email,
-        [recipient_email])
-        # connection=connection,
-        # html_message=html_body)  # For multipart, HTML-enabled emails
+        to=[recipient_email],
+        bcc=bcc_list)#,
+        # connection=connection)
+
+    if html_body:
+        msg.attach_alternative(html_body, 'text/html')
+
+    msg.send()
     return
 
 
