@@ -288,3 +288,20 @@ pages:
     slug: about
     name: overview
     start_page: true
+  - title: _(Choose Precinct)
+    pages:
+      - title: _(76th Red Hook/South Brooklyn)
+        external: true
+        url: http://map76.makebrooklynsafer.org/
+      - title: _(78th Park Slope)
+        external: true
+        url: http://map78.makebrooklynsafer.org/
+      - title: _(84th Downtown/Brooklyn Heights/Boerum Hill)
+        external: true
+        url: http://map84.makebrooklynsafer.org/
+      - title: _(88th Fort Greene)
+        external: true
+        url: http://map88.makebrooklynsafer.org/
+      - title: _(Make Brooklyn Safer homepage)
+        external: true
+        url: http://www.makebrooklynsafer.org/
