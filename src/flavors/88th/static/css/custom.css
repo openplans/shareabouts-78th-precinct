@@ -23,7 +23,6 @@
   background: #E8E0D8;
 }
 
-
 /* List View Button */
 .list-toggle-nav {
 /*  font-size: 1em;*/
@@ -62,6 +61,10 @@
   text-shadow: -0.25em -1px 0 #00aaff, -0.25em 1px 0 #00aaff, -0.375em 0 0 #fff;
 }
 
+.access li ul li a {
+  text-align: left !important;
+  padding: 10px 10px 10px 30px !important;
+}
 
 /* =Media Queries
 -------------------------------------------------------------- */

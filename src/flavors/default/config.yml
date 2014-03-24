@@ -297,6 +297,21 @@ pages:
   - title: _(Resources)
     slug: resources
     name: features
+    
+  - title: _(Other precincts)
+    pages:
+      - title: _(76th - Red Hook/South Brooklyn)
+        external: true
+        url: http://map76.makebrooklynsafer.org/
+      - title: _(78th - Red Hook/South Brooklyn)
+        external: true
+        url: http://map76.makebrooklynsafer.org/
+      - title: _(84th - Downtown/Brooklyn Heights/Boerum Hill)
+        external: true
+        url: http://map84.makebrooklynsafer.org/
+      - title: _(Make Brooklyn Safer homepage)
+        external: true
+        url: http://www.makebrooklynsafer.org/
 
 notifications:
   on_new_place: false
