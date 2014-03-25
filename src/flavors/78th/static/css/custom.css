@@ -15,7 +15,7 @@
 
 #site-title a:link,
 #site-title a:visited {
-  font-size: 1.5em;
+  font-size: 1.25em;
 }
 
 /* better color for background when map tiles are loading */
@@ -23,14 +23,69 @@
   background: #E8E0D8;
 }
 
+/* List View Button */
+.list-toggle-nav {
+/*  font-size: 1em;*/
+  float: left;
+}
+.list-toggle-btn,
+.list-toggle-btn:visited,
+.list-toggle-btn:link {
+  background-color: #7C4199;
+  color: #fff;
+  font-weight: 800;
+  min-width: 11.5em;
+}
+.list-toggle-btn:hover {
+  background-color: #00aaff;
+  color: #fff;
+}
+.show-the-map:before {
+  content: '\27A4';
+  margin: 0 0.375em;
+  display: inline-block;
+  -webkit-transform: rotate(-45deg);
+      -ms-transform: rotate(-45deg);
+          transform: rotate(-45deg);
+  -webkit-transform-origin: 30% 60%;
+      -ms-transform-origin: 30% 60%;
+          transform-origin: 30% 60%;
+
+}
+.show-the-list:before {
+  content: '\2630';
+  margin: 0 0.375em;
+  text-shadow: -0.25em -1px 0 #7C4199, -0.25em 1px 0 #7C4199, -0.375em 0 0 #fff;
+}
+.list-toggle-btn:hover .show-the-list:before {
+  text-shadow: -0.25em -1px 0 #00aaff, -0.25em 1px 0 #00aaff, -0.375em 0 0 #fff;
+}
+
+.access li ul li a {
+  text-align: left !important;
+  padding: 10px 10px 10px 30px !important;
+}
+
 /* =Media Queries
 -------------------------------------------------------------- */
 
 @media only screen and (min-width: 768px) {
+  #site-title a:link,
+  #site-title a:visited {
+    padding-top: 0em;
+  }
 }
 
 @media only screen and (min-width: 1024px) {
+  #site-title a:link,
+  #site-title a:visited {
+    padding-top: 1em;
+  }
 }
 
 @media only screen and (min-width: 1300px) {
+  #site-title a:link,
+  #site-title a:visited {
+    padding-top: 1em;
+  }
 }
