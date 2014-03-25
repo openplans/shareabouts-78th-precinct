@@ -3,7 +3,7 @@ app:
   # HTML Title
   title: Make Brooklyn Safer
   # Header name
-  name: Kids Rely On Safe Streets in the 84th Precinct
+  name: Make Brooklyn Safer
   # Meta description that will show up in Google search results
   meta_description: _(Shareabouts is a mapping tool to gather crowd sourced public input. Use it to collect suggested locations and comments in a social, engaging process.)
 
@@ -206,6 +206,9 @@ place:
   action_text: _(reported)
   anonymous_name: _(Someone)
   submit_button_label: _(Share this report)
+  # Labels for the buttons that toggle the map and list views
+  show_list_button_label: _(View as list)
+  show_map_button_label: _(View on map)
   items:
     - prompt: _(Your name)
       type: text
@@ -223,20 +226,12 @@ place:
           value: Traffic_does_not_yield
         - label: _(Bike lane blocked)
           value: Bike_lane_blocked
-        - label: _(No bike lane)
-          value: No_bike_lane
         - label: _(Speeding traffic)
           value: Speeding_traffic
-        - label: _(Not enough time to cross)
-          value: Not_enough_time_to_cross
         - label: _(Dangerous crossing)
           value: Dangerous_crossing
         - label: _(Crosswalk blocked)
           value: Crosswalk_blocked
-        - label: _(Crosswalk needs painting)
-          value: Crosswalk_needs_painting
-        - label: _(Sidewalk too narrow)
-          value: Sidewalk_too_narrow
         - label: _(Double parked cars/trucks)
           value: Double_parked_cars
     - prompt: _(Intersection or street name)
@@ -253,7 +248,7 @@ place:
       attrs:
         - key: placeholder
           value: _(Optionally, tell us more about this location...)
-          
+
 survey:
   submission_type: comments
 
